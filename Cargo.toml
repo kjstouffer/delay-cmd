@@ -1,0 +1,7 @@
+[package]
+name = "delay_cmd"
+version = "0.1.0"
+authors = ["Keith Stouffer <kjstouffer@users.noreply.github.com>"]
+
+[dependencies]
+clap = "2.31.2"

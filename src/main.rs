@@ -82,7 +82,7 @@ fn server() -> std::io::Result<()> {
             } else {
                 drop(locked_map);
             }
-            thread::sleep(Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(50));
         }
     });
     loop {
@@ -100,12 +100,14 @@ fn server() -> std::io::Result<()> {
             }
         };
         let cmd = &cmd[4..];
+        println!("received cmd: {}", cmd);
         let now = SystemTime::now();
         let times = Times {
             first: now,
             latest: now,
             duration: duration,
         };
+        let is_empty = !locked_map.is_empty();
         let last_time = locked_map.remove(cmd);
         let new_times = match last_time {
             Some(mut v) => {
@@ -114,9 +116,12 @@ fn server() -> std::io::Result<()> {
             }
             None => times,
         };
+        //only send message if the entry is new:
         locked_map.insert(cmd.to_string(), new_times);
-        //just send nothing
-        tx.send("").unwrap();
+        if is_empty {
+            //just send nothing
+            tx.send("").unwrap();
+        }
         drop(locked_map);
     }
 }

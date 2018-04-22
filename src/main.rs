@@ -1,3 +1,6 @@
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
+
 extern crate clap;
 
 use clap::ArgMatches;
@@ -7,11 +10,11 @@ use std::io::Read;
 use std::net::SocketAddr;
 use std::net::UdpSocket;
 use std::process::Command;
-use std::str;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime};
+use std::{f64, str};
 
 mod load_config;
 
@@ -32,7 +35,7 @@ fn main() {
     if matches.is_present("server") {
         server().unwrap();
     } else {
-        client(matches);
+        client(&matches);
     }
 }
 
@@ -57,7 +60,7 @@ fn server() -> std::io::Result<()> {
                 let duration = val.first.elapsed().unwrap();
                 let total = format!(
                     "{}",
-                    duration.as_secs() as f64 + duration.subsec_nanos() as f64 * 1e-9
+                    duration.as_secs() as f64 + f64::from(duration.subsec_nanos()) * 1e-9
                 );
                 if since_latest >= val.duration {
                     let result = Command::new("bash")
@@ -105,7 +108,7 @@ fn server() -> std::io::Result<()> {
         let times = Times {
             first: now,
             latest: now,
-            duration: duration,
+            duration,
         };
         let is_empty = !locked_map.is_empty();
         let last_time = locked_map.remove(cmd);
@@ -126,7 +129,7 @@ fn server() -> std::io::Result<()> {
     }
 }
 
-fn client(matches: ArgMatches) {
+fn client(matches: &ArgMatches) {
     let stdindata: Vec<u8>;
     let cmd = if matches.is_present("cmd") {
         matches.value_of("cmd").unwrap()
@@ -148,5 +151,5 @@ fn client(matches: ArgMatches) {
     //combine delay and cmd
     let to_send = format!("{:04} {}", delay, cmd);
     socket.send(to_send.as_bytes()).unwrap();
-    socket.recv(&mut vec![0u8; MAX_DATAGRAM_SIZE]).unwrap();
+    socket.recv(&mut [0u8; MAX_DATAGRAM_SIZE]).unwrap();
 }

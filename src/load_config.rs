@@ -24,4 +24,10 @@ pub fn app() -> App<'static, 'static> {
                 .long("delay")
                 .short("d"),
         )
+        .arg(
+            Arg::with_name("server")
+                .help("run this utility in server mode")
+                .required(false)
+                .long("server"),
+        )
 }

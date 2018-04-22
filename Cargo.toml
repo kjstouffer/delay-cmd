@@ -1,5 +1,5 @@
 [package]
-name = "delay_cmd"
+name = "delay-cmd"
 version = "0.1.0"
 authors = ["Keith Stouffer <kjstouffer@users.noreply.github.com>"]
 

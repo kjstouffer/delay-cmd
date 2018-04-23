@@ -1,10 +1,19 @@
 ## Delay Command
 
-Delays a command for a number of millseconds.
+Delays a command for a number of millseconds. When the same command is sent again before the delay time, the delay is reset.
 
 ## Install
 
-`cargo install --git https://github.com/kjstouffer/delay-cmd`
+### MacOS
+
+```shell
+brew tap kjstouffer/delay-cmd github.com/kjstouffer/delay-cmd.git
+brew install delay-cmd
+```
+
+### Other
+
+`cargo install --git https://github.com/kjstouffer/delay-cmd.git`
 
 ## Usage
 

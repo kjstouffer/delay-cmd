@@ -47,12 +47,8 @@ fn server() -> std::io::Result<()> {
     let socket = UdpSocket::bind("127.0.0.1:3400")?;
     let (tx, rx) = channel();
 
-    // Receives a single datagram message on the socket. If `buf` is too small to hold
-    // the message, it will be cut off.
-    // let (tx, rx) = channel();
     thread::spawn(move || {
         loop {
-            //check timer here! :tada:
             let mut locked_map = check_cmd.lock().unwrap();
             let mut keys_to_remove: Vec<String> = vec![];
             for (key, val) in locked_map.iter() {
@@ -79,9 +75,11 @@ fn server() -> std::io::Result<()> {
             if locked_map.is_empty() {
                 drop(locked_map);
                 //wait for signal from other thread for a new command
+                //this is to save CPU time
                 //we don't care what the message is, only that we were signaled
                 println!("command map is empty, waiting for channel.");
                 rx.recv().unwrap();
+                println!("received new command.");
             } else {
                 drop(locked_map);
             }
@@ -89,6 +87,7 @@ fn server() -> std::io::Result<()> {
         }
     });
     loop {
+        println!("waiting for command from client");
         let mut buf: Vec<u8> = vec![0; 1024];
         let (amt, src) = socket.recv_from(&mut buf).unwrap();
         socket.send_to(b"", &src)?;
@@ -110,7 +109,7 @@ fn server() -> std::io::Result<()> {
             latest: now,
             duration,
         };
-        let is_empty = !locked_map.is_empty();
+        let is_empty = locked_map.is_empty();
         let last_time = locked_map.remove(cmd);
         let new_times = match last_time {
             Some(mut v) => {
@@ -123,6 +122,7 @@ fn server() -> std::io::Result<()> {
         locked_map.insert(cmd.to_string(), new_times);
         if is_empty {
             //just send nothing
+            println!("sending message to server to start processing");
             tx.send("").unwrap();
         }
         drop(locked_map);
